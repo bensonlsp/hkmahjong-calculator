@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>雀友計數機 🀄</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Noto+Sans+HK:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --felt:#0E6B4F;
+  --felt-dark:#0A5740;
+  --ivory:#FFF9EC;
+  --ivory-edge:#E8DCC0;
+  --red:#E8402F;
+  --gold:#FFC24B;
+  --jade:#1FA873;
+  --ink:#2B2620;
+  --blue:#2E6FD8;
+  --shadow:0 4px 0 rgba(0,0,0,.22);
+  --radius:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:'Noto Sans HK',sans-serif;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255,255,255,.07), transparent 40%),
+    repeating-linear-gradient(45deg, rgba(0,0,0,.04) 0 8px, transparent 8px 16px),
+    var(--felt);
+  color:var(--ink);
+  min-height:100%;
+  padding-bottom:90px;
+}
+.wrap{max-width:520px;margin:0 auto;padding:14px}
+
+/* ===== header ===== */
+header{display:flex;align-items:center;justify-content:space-between;padding:6px 2px 14px}
+h1{font-size:24px;font-weight:900;color:#fff;letter-spacing:1px;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+h1 .tile-emoji{display:inline-block;transform:rotate(-8deg)}
+.icon-btn{
+  background:var(--ivory);border:none;border-radius:12px;width:42px;height:42px;
+  font-size:20px;box-shadow:var(--shadow);cursor:pointer;
+}
+.icon-btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.22)}
+
+/* ===== wind / round banner ===== */
+.round-banner{
+  display:flex;align-items:center;gap:12px;
+  background:linear-gradient(180deg,#FFFDF6,var(--ivory));
+  border:2px solid var(--ivory-edge);
+  border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow);
+  margin-bottom:14px;
+}
+.wind-tile{
+  width:58px;height:74px;border-radius:10px;flex:none;
+  background:linear-gradient(180deg,#fff, #F4ECD8);
+  border:2px solid var(--ivory-edge);
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.08), 0 3px 0 rgba(0,0,0,.15);
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;font-weight:900;color:var(--blue);
+}
+.round-info{flex:1}
+.round-info .label{font-size:12px;color:#8A7F6B;font-weight:700;letter-spacing:2px}
+.round-info .value{font-size:20px;font-weight:900}
+.round-nav{display:flex;gap:6px}
+.round-nav button{
+  width:38px;height:38px;border:none;border-radius:10px;background:var(--gold);
+  font-weight:900;font-size:18px;color:var(--ink);box-shadow:var(--shadow);cursor:pointer;
+}
+.round-nav button:active{transform:translateY(3px);box-shadow:none}
+
+/* ===== players ===== */
+.players{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.player{
+  background:var(--ivory);border:2px solid var(--ivory-edge);border-radius:var(--radius);
+  padding:10px 12px;box-shadow:var(--shadow);position:relative;cursor:pointer;transition:transform .1s;
+}
+.player.selected{outline:4px solid var(--gold);outline-offset:-2px}
+.player .pname{font-weight:700;font-size:15px;display:flex;align-items:center;gap:6px}
+.player .pname input{
+  border:none;background:transparent;font:inherit;width:100%;outline:none;border-bottom:2px dashed transparent;
+}
+.player .pname input:focus{border-bottom-color:var(--gold)}
+.player .ptotal{font-family:'Fredoka',sans-serif;font-size:26px;font-weight:700;margin-top:2px}
+.player .ptotal.pos{color:var(--jade)}
+.player .ptotal.neg{color:var(--red)}
+.dealer-badge{
+  position:absolute;top:-9px;right:-6px;background:var(--red);color:#fff;
+  font-size:11px;font-weight:900;padding:3px 8px;border-radius:99px;box-shadow:0 2px 0 rgba(0,0,0,.2);
+}
+
+/* ===== panel ===== */
+.panel{
+  background:var(--ivory);border:2px solid var(--ivory-edge);border-radius:var(--radius);
+  padding:16px;box-shadow:var(--shadow);margin-bottom:14px;
+}
+.panel h2{font-size:15px;font-weight:900;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.hint{font-size:12px;color:#8A7F6B;margin-bottom:8px}
+
+/* who won chips */
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.chip{
+  border:2px solid var(--ivory-edge);background:#fff;border-radius:99px;
+  padding:8px 16px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;
+}
+.chip.on{background:var(--jade);border-color:var(--jade);color:#fff}
+.chip.on-red{background:var(--red);border-color:var(--red);color:#fff}
+
+/* fan stepper styled like a tile */
+.fan-area{display:flex;align-items:center;justify-content:center;gap:14px;margin:8px 0 12px}
+.fan-tile{
+  width:96px;height:120px;border-radius:14px;
+  background:linear-gradient(180deg,#fff,#F4ECD8);
+  border:2px solid var(--ivory-edge);
+  box-shadow:inset 0 -6px 0 rgba(0,0,0,.08), 0 5px 0 rgba(0,0,0,.15);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.fan-tile .num{font-family:'Fredoka',sans-serif;font-size:48px;font-weight:700;color:var(--red);line-height:1}
+.fan-tile .unit{font-size:14px;font-weight:900;color:#8A7F6B}
+.step-btn{
+  width:54px;height:54px;border-radius:50%;border:none;font-size:26px;font-weight:900;
+  background:var(--gold);color:var(--ink);box-shadow:var(--shadow);cursor:pointer;
+}
+.step-btn:active{transform:translateY(3px);box-shadow:none}
+.quick-fans{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:12px}
+.quick-fans button{
+  border:2px solid var(--ivory-edge);background:#fff;border-radius:8px;padding:6px 12px;
+  font-family:'Fredoka',sans-serif;font-weight:600;font-size:15px;cursor:pointer;
+}
+.quick-fans button:active{background:var(--gold)}
+
+/* win type */
+.win-type{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.win-type button{
+  border:2px solid var(--ivory-edge);background:#fff;border-radius:12px;padding:12px;
+  font-weight:900;font-size:16px;cursor:pointer;font-family:inherit;
+}
+.win-type button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+
+.preview{
+  background:linear-gradient(180deg,#FFF4D6,#FFE9B3);
+  border:2px dashed var(--gold);border-radius:12px;padding:12px;text-align:center;margin-bottom:12px;
+}
+.preview .money{font-family:'Fredoka',sans-serif;font-size:30px;font-weight:700;color:var(--red)}
+.preview .detail{font-size:12px;color:#8A6A2B;font-weight:700;margin-top:2px}
+.preview.warn{background:#FFE3E0;border-color:var(--red)}
+.preview.warn .detail{color:var(--red)}
+
+.confirm-btn{
+  width:100%;border:none;border-radius:14px;padding:16px;font-size:18px;font-weight:900;
+  background:var(--red);color:#fff;box-shadow:0 5px 0 #9E2418;cursor:pointer;font-family:inherit;
+}
+.confirm-btn:active{transform:translateY(4px);box-shadow:0 1px 0 #9E2418}
+.confirm-btn:disabled{background:#C9BFA9;box-shadow:0 5px 0 #A89E88;cursor:not-allowed}
+
+/* ===== accordion ===== */
+details{margin-bottom:14px}
+details summary{
+  list-style:none;cursor:pointer;
+  background:var(--ivory);border:2px solid var(--ivory-edge);border-radius:var(--radius);
+  padding:14px 16px;font-weight:900;font-size:15px;box-shadow:var(--shadow);
+  display:flex;justify-content:space-between;align-items:center;
+}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:'▾';transition:transform .2s}
+details[open] summary{border-radius:var(--radius) var(--radius) 0 0}
+details[open] summary::after{transform:rotate(180deg)}
+.acc-body{
+  background:#FFFDF6;border:2px solid var(--ivory-edge);border-top:none;
+  border-radius:0 0 var(--radius) var(--radius);padding:12px 16px;box-shadow:var(--shadow);
+}
+.fan-table{width:100%;border-collapse:collapse;font-size:14px}
+.fan-table td{padding:7px 4px;border-bottom:1px dashed var(--ivory-edge)}
+.fan-table tr:last-child td{border-bottom:none}
+.fan-table .f{font-family:'Fredoka',sans-serif;font-weight:700;color:var(--red);text-align:right;white-space:nowrap}
+.fan-table .cat{font-weight:900;color:var(--jade);padding-top:12px;font-size:13px;letter-spacing:1px}
+
+/* history */
+.log-item{
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+  padding:9px 4px;border-bottom:1px dashed var(--ivory-edge);font-size:13.5px;
+}
+.log-item:last-child{border-bottom:none}
+.log-item .money{font-family:'Fredoka',sans-serif;font-weight:700;color:var(--red);white-space:nowrap}
+.undo-btn{
+  width:100%;margin-top:10px;border:2px solid var(--ivory-edge);background:#fff;border-radius:10px;
+  padding:10px;font-weight:900;cursor:pointer;font-family:inherit;font-size:14px;
+}
+.empty-log{text-align:center;color:#A89E88;font-size:13px;padding:14px 0}
+
+/* ===== modal ===== */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(20,40,30,.6);display:none;
+  align-items:flex-end;justify-content:center;z-index:50;
+}
+.modal-bg.show{display:flex}
+.modal{
+  background:var(--ivory);border-radius:20px 20px 0 0;width:100%;max-width:520px;
+  max-height:88vh;overflow-y:auto;padding:20px 18px 30px;
+}
+.modal h2{font-size:18px;font-weight:900;margin-bottom:14px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:900;margin-bottom:6px;color:#6B6052}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{
+  flex:1;min-width:70px;border:2px solid var(--ivory-edge);background:#fff;border-radius:10px;
+  padding:10px 6px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;
+}
+.seg button.on{background:var(--jade);border-color:var(--jade);color:#fff}
+.field input[type=number]{
+  width:100%;border:2px solid var(--ivory-edge);border-radius:10px;padding:10px 12px;
+  font-size:16px;font-family:'Fredoka',sans-serif;font-weight:600;background:#fff;outline:none;
+}
+.field input[type=number]:focus{border-color:var(--gold)}
+.field .note{font-size:12px;color:#A89E88;margin-top:4px}
+.modal-close{
+  width:100%;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:900;
+  background:var(--jade);color:#fff;cursor:pointer;font-family:inherit;margin-top:6px;box-shadow:0 4px 0 #136A48;
+}
+.danger-btn{
+  width:100%;border:2px solid var(--red);border-radius:12px;padding:12px;font-size:14px;font-weight:900;
+  background:#fff;color:var(--red);cursor:pointer;font-family:inherit;margin-top:14px;
+}
+
+/* toast */
+#toast{
+  position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(80px);
+  background:var(--ink);color:#fff;padding:12px 22px;border-radius:99px;font-weight:700;
+  font-size:14px;opacity:0;transition:.25s;z-index:99;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.3);
+}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1><span class="tile-emoji">🀄</span> 雀友計數機</h1>
+    <button class="icon-btn" onclick="openSettings()" aria-label="設定">⚙️</button>
+  </header>
+
+  <!-- 風圈 -->
+  <div class="round-banner">
+    <div class="wind-tile" id="windTile">東</div>
+    <div class="round-info">
+      <div class="label">而家打緊</div>
+      <div class="value" id="roundText">東風東局（第 1 局）</div>
+    </div>
+    <div class="round-nav">
+      <button onclick="prevRound()" aria-label="上一局">‹</button>
+      <button onclick="nextRound()" aria-label="下一局">›</button>
+    </div>
+  </div>
+
+  <!-- 玩家 -->
+  <div class="players" id="players"></div>
+
+  <!-- 食糊輸入 -->
+  <div class="panel">
+    <h2>🎉 邊個食糊？</h2>
+    <div class="chip-row" id="winnerChips"></div>
+
+    <h2>🀅 幾多番？</h2>
+    <div class="fan-area">
+      <button class="step-btn" onclick="changeFan(-1)" aria-label="減一番">−</button>
+      <div class="fan-tile">
+        <div class="num" id="fanNum">3</div>
+        <div class="unit">番</div>
+      </div>
+      <button class="step-btn" onclick="changeFan(1)" aria-label="加一番">＋</button>
+    </div>
+    <div class="quick-fans" id="quickFans"></div>
+
+    <h2>💥 點樣糊？</h2>
+    <div class="win-type">
+      <button id="btnZimo" class="on" onclick="setWinType('zimo')">自摸</button>
+      <button id="btnChut" onclick="setWinType('chut')">食出（有人出沖）</button>
+    </div>
+    <div id="loserSection" style="display:none">
+      <div class="hint">邊個出沖？</div>
+      <div class="chip-row" id="loserChips"></div>
+    </div>
+
+    <div class="preview" id="preview">
+      <div class="money" id="previewMoney">—</div>
+      <div class="detail" id="previewDetail">揀好晒就計畀你睇</div>
+    </div>
+
+    <button class="confirm-btn" id="confirmBtn" onclick="confirmWin()">✓ 記低呢鋪</button>
+  </div>
+
+  <!-- 番數表 -->
+  <details>
+    <summary>📖 常見牌型番數表</summary>
+    <div class="acc-body">
+      <div class="hint">⚠️ 各家各法！下面係常見香港牌例，開枱前同雀友夾好先。</div>
+      <table class="fan-table">
+        <tr><td class="cat" colspan="2">基本</td></tr>
+        <tr><td>雞糊（咩都無）</td><td class="f">0 番</td></tr>
+        <tr><td>平糊（全部上、無刻子）</td><td class="f">1 番</td></tr>
+        <tr><td>無花</td><td class="f">1 番</td></tr>
+        <tr><td>正花（一隻）</td><td class="f">1 番</td></tr>
+        <tr><td>自摸</td><td class="f">+1 番</td></tr>
+        <tr><td>門前清（無上無碰）</td><td class="f">1 番</td></tr>
+        <tr><td>番牌刻子（中發白／圈風／門風）</td><td class="f">每組 1 番</td></tr>
+        <tr><td class="cat" colspan="2">情景加番</td></tr>
+        <tr><td>槓上自摸（槓上開花）</td><td class="f">+1 番</td></tr>
+        <tr><td>搶槓</td><td class="f">+1 番</td></tr>
+        <tr><td>海底撈月（最後一隻自摸）</td><td class="f">+1 番</td></tr>
+        <tr><td class="cat" colspan="2">中型牌</td></tr>
+        <tr><td>對對糊（全碰）</td><td class="f">3 番</td></tr>
+        <tr><td>混一色（一門花色＋字）</td><td class="f">3 番</td></tr>
+        <tr><td>花糊（集齊 7 隻花，即糊）</td><td class="f">3 番</td></tr>
+        <tr><td>小三元（中發白兩刻一對）</td><td class="f">5 番（連番牌）</td></tr>
+        <tr><td>清一色（淨一門花色）</td><td class="f">7 番</td></tr>
+        <tr><td>大三元（中發白三組刻）</td><td class="f">8 番</td></tr>
+        <tr><td>坎坎糊（四暗刻自摸）</td><td class="f">8 番＊</td></tr>
+        <tr><td class="cat" colspan="2">例牌（通常爆棚 13 番）</td></tr>
+        <tr><td>字一色</td><td class="f">13 番＊</td></tr>
+        <tr><td>清幺九</td><td class="f">13 番＊</td></tr>
+        <tr><td>小四喜（三風刻一風對）</td><td class="f">13 番＊</td></tr>
+        <tr><td>大四喜（四風齊刻）</td><td class="f">13 番</td></tr>
+        <tr><td>九蓮寶燈</td><td class="f">13 番＊</td></tr>
+        <tr><td>十三幺</td><td class="f">13 番</td></tr>
+        <tr><td>十八羅漢（四槓）</td><td class="f">13 番</td></tr>
+        <tr><td>天糊（莊家起手糊）</td><td class="f">13 番</td></tr>
+        <tr><td>地糊（閒家食莊第一隻）</td><td class="f">13 番</td></tr>
+      </table>
+      <div class="hint" style="margin-top:8px">＊呢幾款有人打 8／10 番，記住開枱前傾掂佢！</div>
+    </div>
+  </details>
+
+  <!-- 紀錄 -->
+  <details open>
+    <summary>📜 對局紀錄</summary>
+    <div class="acc-body">
+      <div id="logList"><div class="empty-log">未開齋住～食咗糊就會記喺度</div></div>
+      <button class="undo-btn" onclick="undo()">↩️ 復原上一鋪</button>
+    </div>
+  </details>
+
+</div>
+
+<!-- 設定 modal -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <h2>⚙️ 計錢設定</h2>
+
+    <div class="field">
+      <label>計法</label>
+      <div class="seg">
+        <button id="modeClassic" onclick="setMode('classic')">傳統倍增（辣上）</button>
+        <button id="modeLinear" onclick="setMode('linear')">簡單：幾錢一番</button>
+      </div>
+    </div>
+
+    <div id="linearFields">
+      <div class="field">
+        <label>一番幾多錢（$）</label>
+        <input type="number" id="perFan" value="1" min="0.1" step="0.1" inputmode="decimal">
+        <div class="note">糊牌價 = 番數 × 每番銀碼</div>
+      </div>
+    </div>
+
+    <div id="classicFields" style="display:none">
+      <div class="field">
+        <label>起糊底價（$，即起糊番數嗰個價）</label>
+        <input type="number" id="basePrice" value="8" min="0.5" step="0.5" inputmode="decimal">
+        <div class="note">例：三番起糊 $8，即係「五一」常見玩法</div>
+      </div>
+      <div class="field">
+        <label>辣上方式</label>
+        <div class="seg">
+          <button id="lalaBtn" onclick="setLala('full')">辣辣上（每番×2）</button>
+          <button id="halfBtn" class="on" onclick="setLala('half')">半辣上</button>
+        </div>
+        <div class="note">半辣上：3番$8 → 4番$16 → 5番$24 → 6番$32 → 7番$48…</div>
+      </div>
+      <div class="field">
+        <label>封頂（爆棚）番數</label>
+        <div class="seg" id="capSeg">
+          <button data-cap="8">8 番</button>
+          <button data-cap="10" class="on">10 番</button>
+          <button data-cap="13">13 番</button>
+          <button data-cap="0">無封頂</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>起糊番數</label>
+      <div class="seg" id="minFanSeg">
+        <button data-min="0">無限制</button>
+        <button data-min="1">1 番起</button>
+        <button data-min="3" class="on">3 番起</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>出沖點計（銃制）</label>
+      <div class="seg">
+        <button id="halfChung" class="on" onclick="setChung('half')">半銃</button>
+        <button id="fullChung" onclick="setChung('full')">全銃</button>
+      </div>
+      <div class="note">半銃：出沖嗰個畀一半，另外兩家各畀四分一。全銃：出沖一個人孭晒。</div>
+    </div>
+
+    <div class="field">
+      <label>自摸點計</label>
+      <div class="seg">
+        <button id="zimoHalf" class="on" onclick="setZimo('half')">三家各畀半價</button>
+        <button id="zimoFull" onclick="setZimo('full')">三家各畀全價</button>
+      </div>
+    </div>
+
+    <button class="modal-close" onclick="closeSettings()">搞掂 ✓</button>
+    <button class="danger-btn" onclick="resetGame()">🔄 重新開局（清晒分數同紀錄）</button>
+  </div>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script>
+const WINDS = ['東','南','西','北'];
+
+const state = {
+  players: [
+    {name:'玩家 1', total:0},
+    {name:'玩家 2', total:0},
+    {name:'玩家 3', total:0},
+    {name:'玩家 4', total:0},
+  ],
+  roundWind: 0,   // 0=東圈
+  game: 0,        // 0-3 = 東南西北局
+  fan: 3,
+  winner: null,
+  loser: null,
+  winType: 'zimo',
+  history: [],    // {desc, money, snapshot}
+  settings: {
+    mode: 'classic',     // classic | linear
+    perFan: 1,
+    basePrice: 8,
+    lala: 'half',        // full | half
+    cap: 10,             // 0 = no cap
+    minFan: 3,
+    chung: 'half',       // half | full
+    zimo: 'half',        // half | full
+  }
+};
+
+/* ===== 計錢核心 ===== */
+function handValue(fan){
+  const s = state.settings;
+  if(s.mode === 'linear') return fan * s.perFan;
+  // classic
+  let f = fan;
+  if(s.cap > 0) f = Math.min(f, s.cap);
+  const start = Math.max(s.minFan, 1);
+  if(f < start) f = start;
+  const steps = f - start;
+  let mult;
+  if(s.lala === 'full'){
+    mult = Math.pow(2, steps);
+  }else{
+    // 半辣上 multipliers: 1,2,3,4,6,8,12,16,24,32...
+    const seq = [1,2];
+    while(seq.length <= steps) seq.push(seq[seq.length-2]*2);
+    mult = seq[steps];
+  }
+  return s.basePrice * mult;
+}
+
+function fmt(n){
+  const r = Math.round(n*100)/100;
+  return '$' + (Number.isInteger(r) ? r : r.toFixed(r*10%1===0 ? 1 : 2));
+}
+
+/* 計每家畀幾多: returns {payments:[4], desc} */
+function computePayments(){
+  const s = state.settings;
+  const V = handValue(state.fan);
+  const pay = [0,0,0,0];
+  let detail = '';
+  if(state.winType === 'zimo'){
+    const each = s.zimo === 'half' ? V/2 : V;
+    state.players.forEach((p,i)=>{ if(i!==state.winner) pay[i] = each; });
+    detail = `自摸！三家各畀 ${fmt(each)}，共收 ${fmt(each*3)}`;
+  }else{
+    if(s.chung === 'half'){
+      pay[state.loser] = V/2;
+      state.players.forEach((p,i)=>{ if(i!==state.winner && i!==state.loser) pay[i] = V/4; });
+      detail = `半銃：出沖畀 ${fmt(V/2)}，另外兩家各 ${fmt(V/4)}，共收 ${fmt(V)}`;
+    }else{
+      pay[state.loser] = V;
+      detail = `全銃：出沖一個人畀晒 ${fmt(V)}`;
+    }
+  }
+  return {pay, V, detail};
+}
+
+/* ===== render ===== */
+function renderPlayers(){
+  const el = document.getElementById('players');
+  el.innerHTML = '';
+  state.players.forEach((p,i)=>{
+    const d = document.createElement('div');
+    d.className = 'player';
+    const cls = p.total>0?'pos':p.total<0?'neg':'';
+    const sign = p.total>0?'+':'';
+    d.innerHTML = `
+      ${i===state.game?'<span class="dealer-badge">莊</span>':''}
+      <div class="pname">${WINDS[(i-state.game+4)%4]}位
+        <input value="${p.name}" maxlength="8" aria-label="玩家名" onchange="state.players[${i}].name=this.value;renderAll()">
+      </div>
+      <div class="ptotal ${cls}"></div>`;
+    d.querySelector('.ptotal').textContent = (p.total>0?'+':p.total<0?'−':'') + fmt(Math.abs(p.total));
+    el.appendChild(d);
+  });
+}
+
+function renderChips(){
+  const w = document.getElementById('winnerChips');
+  w.innerHTML = '';
+  state.players.forEach((p,i)=>{
+    const b = document.createElement('button');
+    b.className = 'chip' + (state.winner===i?' on':'');
+    b.textContent = p.name;
+    b.onclick = ()=>{ state.winner=i; if(state.loser===i) state.loser=null; renderAll(); };
+    w.appendChild(b);
+  });
+  const l = document.getElementById('loserChips');
+  l.innerHTML = '';
+  state.players.forEach((p,i)=>{
+    if(i===state.winner) return;
+    const b = document.createElement('button');
+    b.className = 'chip' + (state.loser===i?' on-red':'');
+    b.textContent = p.name;
+    b.onclick = ()=>{ state.loser=i; renderAll(); };
+    l.appendChild(b);
+  });
+  document.getElementById('loserSection').style.display = state.winType==='chut'?'block':'none';
+}
+
+function renderRound(){
+  document.getElementById('windTile').textContent = WINDS[state.roundWind];
+  const n = state.roundWind*4 + state.game + 1;
+  document.getElementById('roundText').textContent =
+    `${WINDS[state.roundWind]}風${WINDS[state.game]}局（第 ${n} 局）`;
+}
+
+function renderPreview(){
+  const pv = document.getElementById('preview');
+  const m = document.getElementById('previewMoney');
+  const dt = document.getElementById('previewDetail');
+  const btn = document.getElementById('confirmBtn');
+  const s = state.settings;
+
+  document.getElementById('fanNum').textContent = state.fan;
+
+  if(s.minFan>0 && state.fan < s.minFan){
+    pv.classList.add('warn');
+    m.textContent = '未夠番！';
+    dt.textContent = `而家 ${s.minFan} 番先起糊喎 😅`;
+    btn.disabled = true;
+    return;
+  }
+  pv.classList.remove('warn');
+  if(state.winner===null || (state.winType==='chut' && state.loser===null)){
+    m.textContent = '—';
+    dt.textContent = state.winner===null ? '揀返邊個食糊先' : '揀返邊個出沖先';
+    btn.disabled = true;
+    return;
+  }
+  const {V, detail} = computePayments();
+  m.textContent = fmt(V) + (state.settings.cap>0 && state.fan>=state.settings.cap && s.mode==='classic' ? '（爆棚！）':'');
+  dt.textContent = detail;
+  btn.disabled = false;
+}
+
+function renderLog(){
+  const el = document.getElementById('logList');
+  if(!state.history.length){
+    el.innerHTML = '<div class="empty-log">未開齋住～食咗糊就會記喺度</div>';
+    return;
+  }
+  el.innerHTML = '';
+  [...state.history].reverse().forEach(h=>{
+    const d = document.createElement('div');
+    d.className = 'log-item';
+    d.innerHTML = `<span>${h.desc}</span><span class="money">${h.money}</span>`;
+    el.appendChild(d);
+  });
+}
+
+function renderQuickFans(){
+  const el = document.getElementById('quickFans');
+  el.innerHTML = '';
+  [3,4,5,6,7,8,10,13].forEach(f=>{
+    const b = document.createElement('button');
+    b.textContent = f;
+    b.onclick = ()=>{ state.fan=f; renderAll(); };
+    el.appendChild(b);
+  });
+}
+
+function renderAll(){
+  renderPlayers();
+  renderChips();
+  renderRound();
+  renderPreview();
+  renderLog();
+}
+
+/* ===== actions ===== */
+function changeFan(d){
+  state.fan = Math.max(0, Math.min(20, state.fan + d));
+  renderAll();
+}
+function setWinType(t){
+  state.winType = t;
+  document.getElementById('btnZimo').classList.toggle('on', t==='zimo');
+  document.getElementById('btnChut').classList.toggle('on', t==='chut');
+  renderAll();
+}
+function confirmWin(){
+  const {pay, V} = computePayments();
+  const snapshot = state.players.map(p=>p.total);
+  let total = 0;
+  pay.forEach((amt,i)=>{ state.players[i].total -= amt; total += amt; });
+  state.players[state.winner].total += total;
+
+  const roundName = `${WINDS[state.roundWind]}${WINDS[state.game]}局`;
+  const wName = state.players[state.winner].name;
+  const desc = state.winType==='zimo'
+    ? `${roundName}｜${wName} ${state.fan}番 自摸`
+    : `${roundName}｜${wName} ${state.fan}番，${state.players[state.loser].name} 出沖`;
+  state.history.push({desc, money:'+'+fmt(total), snapshot});
+
+  const dealerWon = state.winner === state.game;
+  toast(dealerWon ? `🎉 莊家食糊，連莊！收 ${fmt(total)}` : `🎉 ${wName} 收 ${fmt(total)}！記得過莊～`);
+
+  state.winner = null;
+  state.loser = null;
+  state.fan = Math.max(3, state.settings.minFan || 3);
+  renderAll();
+}
+function undo(){
+  const h = state.history.pop();
+  if(!h){ toast('無嘢可以復原喎'); return; }
+  state.players.forEach((p,i)=> p.total = h.snapshot[i]);
+  toast('↩️ 已復原上一鋪');
+  renderAll();
+}
+function nextRound(){
+  state.game++;
+  if(state.game>3){ state.game=0; state.roundWind=(state.roundWind+1)%4; }
+  toast(`而家打緊：${WINDS[state.roundWind]}風${WINDS[state.game]}局`);
+  renderAll();
+}
+function prevRound(){
+  state.game--;
+  if(state.game<0){ state.game=3; state.roundWind=(state.roundWind+3)%4; }
+  renderAll();
+}
+function resetGame(){
+  if(!confirm('確定重新開局？分數同紀錄會清晒㗎！')) return;
+  state.players.forEach(p=>p.total=0);
+  state.history=[]; state.roundWind=0; state.game=0;
+  state.winner=null; state.loser=null;
+  closeSettings();
+  toast('🆕 新一局開始！');
+  renderAll();
+}
+
+/* ===== settings ===== */
+function openSettings(){ document.getElementById('settingsModal').classList.add('show'); }
+function closeSettings(){
+  state.settings.perFan = Math.max(0.1, parseFloat(document.getElementById('perFan').value)||1);
+  state.settings.basePrice = Math.max(0.5, parseFloat(document.getElementById('basePrice').value)||8);
+  document.getElementById('settingsModal').classList.remove('show');
+  renderAll();
+}
+function setMode(m){
+  state.settings.mode = m;
+  document.getElementById('modeClassic').classList.toggle('on', m==='classic');
+  document.getElementById('modeLinear').classList.toggle('on', m==='linear');
+  document.getElementById('classicFields').style.display = m==='classic'?'block':'none';
+  document.getElementById('linearFields').style.display = m==='linear'?'block':'none';
+}
+function setLala(v){
+  state.settings.lala=v;
+  document.getElementById('lalaBtn').classList.toggle('on', v==='full');
+  document.getElementById('halfBtn').classList.toggle('on', v==='half');
+}
+function setChung(v){
+  state.settings.chung=v;
+  document.getElementById('halfChung').classList.toggle('on', v==='half');
+  document.getElementById('fullChung').classList.toggle('on', v==='full');
+}
+function setZimo(v){
+  state.settings.zimo=v;
+  document.getElementById('zimoHalf').classList.toggle('on', v==='half');
+  document.getElementById('zimoFull').classList.toggle('on', v==='full');
+}
+document.getElementById('capSeg').addEventListener('click', e=>{
+  if(e.target.dataset.cap===undefined) return;
+  state.settings.cap = parseInt(e.target.dataset.cap);
+  [...document.getElementById('capSeg').children].forEach(b=>b.classList.toggle('on', b===e.target));
+});
+document.getElementById('minFanSeg').addEventListener('click', e=>{
+  if(e.target.dataset.min===undefined) return;
+  state.settings.minFan = parseInt(e.target.dataset.min);
+  [...document.getElementById('minFanSeg').children].forEach(b=>b.classList.toggle('on', b===e.target));
+  renderAll();
+});
+document.getElementById('settingsModal').addEventListener('click', e=>{
+  if(e.target.id==='settingsModal') closeSettings();
+});
+
+/* toast */
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+setMode('classic');
+renderQuickFans();
+renderAll();
+</script>
+</body>
+</html>
